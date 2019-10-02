@@ -1,0 +1,7 @@
+{
+  "data": "/tmp/nanocrud-demo",
+  "tokens": [],
+  "port": "9080",
+  "origin": "*",
+  "logLevel": "info"
+}
