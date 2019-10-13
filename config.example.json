@@ -3,5 +3,11 @@
   "tokens": [],
   "port": "9080",
   "origin": "*",
-  "logLevel": "info"
+  "logLevel": "info",
+  "git": {
+    "author": {
+      "name": "nanocrud",
+      "email": "nanocrud@rcoder.net"
+    }
+  }
 }
