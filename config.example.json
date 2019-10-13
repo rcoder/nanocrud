@@ -8,6 +8,7 @@
     "author": {
       "name": "nanocrud",
       "email": "nanocrud@rcoder.net"
-    }
+    },
+    "signingPassphrase": "no really, don't use me as I am now forever public"
   }
 }

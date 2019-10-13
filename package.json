@@ -20,6 +20,7 @@
     "nedb-promises": "^4.0.0",
     "parcel-bundler": "^1.12.3",
     "prelude-ts": "^0.8.3",
+    "session-keys": "^2.0.4",
     "ts-node-dev": "^1.0.0-pre.43",
     "typescript": "^3.6.3"
   }

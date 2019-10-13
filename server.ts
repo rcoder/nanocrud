@@ -1,15 +1,15 @@
-import fastify from 'fastify';
-import sensible from 'fastify-sensible';
-import cors from 'fastify-cors';
+import * as fastify from 'fastify';
+import * as sensible from 'fastify-sensible';
+import * as cors from 'fastify-cors';
 
-import nedb from 'nedb-promises';
-import minimist from 'minimist';
+import * as nedb from 'nedb-promises';
+import * asm minimist from 'minimist';
 import { Option } from 'prelude-ts';
 
 import * as git from 'isomorphic-git';
 
-import fs from 'fs';
-import path from 'path';
+import * as fs from 'fs';
+import * as path from 'path';
 
 const argv = minimist(process.argv.slice(2));
 
@@ -24,6 +24,7 @@ const config = JSON.parse(fs.readFileSync(argv._[0]).toString());
 const dataDir = config.data;
 
 const gitAuthor = config.git.author;
+const gitSignPass = config.git.signingPassphrase;
 
 if (!dataDir || !isDirectory(dataDir)) {
   fs.mkdirSync(dataDir);
