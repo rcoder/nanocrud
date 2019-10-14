@@ -1,15 +1,18 @@
-import * as fastify from 'fastify';
-import * as sensible from 'fastify-sensible';
-import * as cors from 'fastify-cors';
+import fastify from 'fastify';
+import sensible from 'fastify-sensible';
+import cors from 'fastify-cors';
 
-import * as nedb from 'nedb-promises';
-import * asm minimist from 'minimist';
+import nedb from 'nedb-promises';
+import minimist from 'minimist';
 import { Option } from 'prelude-ts';
 
 import * as git from 'isomorphic-git';
+import * as nacl from 'tweetnacl';
 
 import * as fs from 'fs';
 import * as path from 'path';
+
+import { generate, GeneratedKeys } from 'session-keys';
 
 const argv = minimist(process.argv.slice(2));
 
@@ -51,6 +54,8 @@ if (!fs.existsSync(gitDir)) {
   );
 }
 
+const signingPhrase = config.git.signingPassphrase;
+
 const dbCache: Map<string, nedb> = new Map();
 
 const openDb = (name: string) => {
@@ -77,6 +82,8 @@ const openDb = (name: string) => {
   return db;
 };
 
+const signTagRef = 'nanocrud-signed';
+
 process.on('SIGUSR2', async e =>
   Promise.all(Array.from(dbCache.keys()).map(async name => {
     const db = dbCache.get(name);
@@ -92,7 +99,30 @@ process.on('SIGUSR2', async e =>
     dir: dataDir,
     message: 'automatic commit based on signal',
     author: gitAuthor
-  }))
+  })).then(async () => {
+    const keys = (await new Promise<GeneratedKeys>((resolve, reject) =>
+      generate(config.git.author.email, signingPhrase, (err, keys) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(keys);
+        }
+      }))).naclSigningKeyPairs[0];
+    
+    const head = Option.of((await git.log({ dir: dataDir, depth: 1 })).pop());
+    const sig = Buffer.from(
+      nacl.sign.detached(Buffer.from(head.getOrThrow().oid), keys.secretKey)
+    ).toString('base64');
+
+    await git.annotatedTag({
+      dir: dataDir,
+      ref: signTagRef,
+      force: true,
+      message: 'transaction checkpoint',
+      signature: `$.${sig}.ed25519`,
+      tagger: gitAuthor
+    })
+  })
 );
 
 if (config.keys) {
@@ -142,8 +172,7 @@ server.route({
     }
   },
   handler: async (req, reply) => 
-    reply.send((await tryOpenDb(req.params.name)).update(req.body.where, req.body.with)
-    )
+    reply.send((await tryOpenDb(req.params.name)).update(req.body.where, req.body.with))
 });
 
 server.route({
